@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true,
+    "noEmit": false,
+    "paths": {
+      "@auto-post/contracts": ["libs/contracts/dist/index.d.ts"],
+      "@auto-post/db": ["libs/db/dist/index.d.ts"],
+      "@auto-post/platforms": ["libs/platforms/dist/index.d.ts"],
+      "@auto-post/queue": ["libs/queue/dist/index.d.ts"],
+      "@auto-post/crypto": ["libs/crypto/dist/index.d.ts"],
+      "@auto-post/storage": ["libs/storage/dist/index.d.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

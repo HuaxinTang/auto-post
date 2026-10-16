@@ -1,0 +1,17 @@
+{
+  "name": "@auto-post/agent",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "serve": "tsx src/main.ts",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@auto-post/contracts": "workspace:*",
+    "playwright": "^1.50.0",
+    "socket.io-client": "^4.8.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0"
+  }
+}

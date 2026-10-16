@@ -1,0 +1,24 @@
+{
+  "name": "auto-post",
+  "private": true,
+  "packageManager": "pnpm@12.11.2",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:web": "nx run web:dev",
+    "dev:api": "nx run api:dev",
+    "dev:worker": "nx run worker:dev",
+    "dev:agent": "nx run agent:serve",
+    "build": "nx run-many -t build",
+    "lint": "nx run-many -t lint",
+    "db:migrate": "nx run db:migrate",
+    "db:generate": "nx run db:generate"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "nx": "^23.3.0",
+    "typescript": "^5.8.3",
+    "zod": "^4.6.7"
+  }
+}

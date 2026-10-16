@@ -1,0 +1,344 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Plan {
+  SELF_HOST
+  STARTER
+  PRO
+  SCALE
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum Provider {
+  DOUYIN
+  XIAOHONGSHU
+  WECHAT_MP
+  WEIBO
+}
+
+enum AuthMode {
+  BROWSER
+  OFFICIAL_API
+}
+
+enum AccountStatus {
+  PENDING
+  CONNECTED
+  EXPIRED
+  NEEDS_REAUTH
+  DISABLED
+  BANNED
+}
+
+enum CredentialKind {
+  STORAGE_STATE
+  OAUTH_TOKEN
+}
+
+enum PostKind {
+  IMAGE_TEXT
+  VIDEO
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum AggregateState {
+  DRAFT
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  PARTIAL
+  FAILED
+  ARCHIVED
+}
+
+enum MediaRole {
+  COVER
+  IMAGE
+  VIDEO
+}
+
+enum MediaStatus {
+  UPLOADING
+  READY
+  REJECTED
+}
+
+enum PublishMode {
+  DRAFT_THEN_CONFIRM
+  DIRECT
+}
+
+enum TargetStatus {
+  PENDING
+  LEASED
+  RUNNING
+  AWAITING_CONFIRM
+  AWAITING_HUMAN
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum ReconcileStatus {
+  PENDING
+  PRESENT
+  ABSENT
+  REJECTED
+}
+
+enum RunStatus {
+  QUEUED
+  LEASED
+  RUNNING
+  AWAITING_HUMAN
+  SUCCEEDED
+  FAILED
+  TIMED_OUT
+  CANCELLED
+}
+
+enum LoginStatus {
+  CREATED
+  DISPATCHED
+  QR_READY
+  SCANNED
+  AWAITING_HUMAN
+  CONFIRMED
+  EXPIRED
+  FAILED
+}
+
+enum ExecutorStatus {
+  ONLINE
+  OFFLINE
+  DRAINING
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String?   @unique
+  name         String?
+  passwordHash String?
+  createdAt    DateTime  @default(now())
+  memberships  Membership[]
+}
+
+model Organization {
+  id         String        @id @default(cuid())
+  name       String
+  slug       String        @unique
+  plan       Plan          @default(SELF_HOST)
+  createdAt  DateTime      @default(now())
+  memberships Membership[]
+  accounts   PlatformAccount[]
+  posts      Post[]
+  mediaAssets MediaAsset[]
+  postTargets PostTarget[]
+  loginSessions LoginSession[]
+  executors  Executor[]
+  auditEvents AuditEvent[]
+  usageRecords UsageRecord[]
+}
+
+model Membership {
+  id     String       @id @default(cuid())
+  userId String
+  orgId  String
+  role   Role         @default(OWNER)
+  user   User         @relation(fields: [userId], references: [id])
+  org    Organization @relation(fields: [orgId], references: [id])
+
+  @@unique([userId, orgId])
+}
+
+model PlatformAccount {
+  id             String        @id @default(cuid())
+  organizationId String
+  provider       Provider      @default(DOUYIN)
+  authMode       AuthMode      @default(BROWSER)
+  executorId     String?
+  externalId     String?
+  displayName    String?
+  avatarUrl      String?
+  status         AccountStatus @default(PENDING)
+  lastHealthOkAt DateTime?
+  healthError    String?
+  settings       Json          @default("{}")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  credential     AccountCredential?
+  postTargets    PostTarget[]
+  loginSessions  LoginSession[]
+
+  @@unique([organizationId, provider, externalId])
+  @@index([organizationId, status])
+}
+
+model AccountCredential {
+  id         String         @id @default(cuid())
+  accountId  String         @unique
+  kind       CredentialKind @default(STORAGE_STATE)
+  ciphertext Bytes
+  keyVersion Int            @default(1)
+  expiresAt  DateTime?
+  updatedAt  DateTime       @updatedAt
+  account    PlatformAccount @relation(fields: [accountId], references: [id])
+}
+
+model Post {
+  id             String         @id @default(cuid())
+  organizationId String
+  authorId       String?
+  kind           PostKind       @default(IMAGE_TEXT)
+  title          String
+  body           String         @db.Text
+  visibility     Visibility     @default(PRIVATE)
+  state          AggregateState @default(DRAFT)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+  media          MediaAsset[]
+  targets        PostTarget[]
+
+  @@index([organizationId, state])
+}
+
+model MediaAsset {
+  id             String      @id @default(cuid())
+  organizationId String
+  postId         String?
+  role           MediaRole   @default(IMAGE)
+  sortOrder      Int         @default(0)
+  storageKey     String
+  mimeType       String
+  sizeBytes      Int
+  width          Int?
+  height         Int?
+  sha256         String
+  status         MediaStatus @default(READY)
+  createdAt      DateTime    @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  post           Post?       @relation(fields: [postId], references: [id])
+}
+
+model PostTarget {
+  id              String          @id @default(cuid())
+  organizationId  String
+  postId          String
+  accountId       String
+  mode            PublishMode     @default(DRAFT_THEN_CONFIRM)
+  status          TargetStatus    @default(PENDING)
+  scheduledAt     DateTime?
+  publishedAt     DateTime?
+  externalPostId  String?
+  externalUrl     String?
+  reconcileStatus ReconcileStatus @default(PENDING)
+  reconcileAt     DateTime?
+  failCode        String?
+  attemptCount    Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  organization    Organization    @relation(fields: [organizationId], references: [id])
+  post            Post            @relation(fields: [postId], references: [id])
+  account         PlatformAccount @relation(fields: [accountId], references: [id])
+  runs            PublishRun[]
+
+  @@unique([postId, accountId])
+  @@index([status, scheduledAt])
+}
+
+model PublishRun {
+  id             String      @id @default(cuid())
+  targetId       String
+  attemptNo      Int
+  executorId     String?
+  status         RunStatus   @default(QUEUED)
+  mode           PublishMode
+  leaseExpiresAt DateTime?
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  errorCode      String?
+  errorDetail    String?
+  artifacts      Json        @default("[]")
+  eventsLog      Json        @default("[]")
+  matchedWork    Json?
+  draftRef       Json?
+  createdAt      DateTime    @default(now())
+  target         PostTarget  @relation(fields: [targetId], references: [id])
+
+  @@unique([targetId, attemptNo])
+  @@index([status, leaseExpiresAt])
+}
+
+model LoginSession {
+  id             String      @id @default(cuid())
+  organizationId String
+  accountId      String?
+  provider       Provider
+  status         LoginStatus @default(CREATED)
+  executorId     String?
+  qrImageKey     String?
+  qrUpdatedAt    DateTime?
+  hint           String?
+  expiresAt      DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  account        PlatformAccount? @relation(fields: [accountId], references: [id])
+}
+
+model Executor {
+  id               String         @id @default(cuid())
+  organizationId   String
+  name             String
+  tokenHash        String
+  version          String
+  os               String
+  capabilities     Json           @default("[]")
+  selectorsVersion String?
+  status           ExecutorStatus @default(OFFLINE)
+  lastHeartbeatAt  DateTime?
+  createdAt        DateTime       @default(now())
+  organization     Organization   @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, status])
+}
+
+model AuditEvent {
+  id             String      @id @default(cuid())
+  organizationId String
+  actorType      String
+  actorId        String?
+  action         String
+  subjectType    String?
+  subjectId      String?
+  payload        Json        @default("{}")
+  createdAt      DateTime    @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model UsageRecord {
+  id             String      @id @default(cuid())
+  organizationId String
+  metric         String
+  value          Int         @default(1)
+  period         String
+  createdAt      DateTime    @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}

@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "declaration": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@auto-post/contracts": ["libs/contracts/src/index.ts"],
+      "@auto-post/db": ["libs/db/src/index.ts"],
+      "@auto-post/platforms": ["libs/platforms/src/index.ts"],
+      "@auto-post/queue": ["libs/queue/src/index.ts"],
+      "@auto-post/crypto": ["libs/crypto/src/index.ts"],
+      "@auto-post/storage": ["libs/storage/src/index.ts"]
+    }
+  }
+}

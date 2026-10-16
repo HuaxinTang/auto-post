@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
+    "noEmit": false,
+    "sourceMap": true,
+    "paths": {
+      "@auto-post/contracts": ["libs/contracts/dist/index"],
+      "@auto-post/db": ["libs/db/dist/index"],
+      "@auto-post/platforms": ["libs/platforms/dist/index"],
+      "@auto-post/queue": ["libs/queue/dist/index"],
+      "@auto-post/crypto": ["libs/crypto/dist/index"],
+      "@auto-post/storage": ["libs/storage/dist/index"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

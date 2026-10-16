@@ -1,0 +1,35 @@
+{
+  "name": "@auto-post/api",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node dist/main.js",
+    "dev": "nest start --watch",
+    "build": "nest build"
+  },
+  "dependencies": {
+    "@auto-post/contracts": "workspace:*",
+    "@auto-post/crypto": "workspace:*",
+    "@auto-post/db": "workspace:*",
+    "@auto-post/platforms": "workspace:*",
+    "@auto-post/queue": "workspace:*",
+    "@auto-post/storage": "workspace:*",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/platform-socket.io": "^11.0.0",
+    "@nestjs/websockets": "^11.0.0",
+    "dotenv": "^17.0.0",
+    "multer": "^2.0.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "socket.io": "^4.8.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@types/express": "^5.0.0",
+    "@types/multer": "^2.0.0",
+    "ts-loader": "^9.6.2"
+  }
+}
